@@ -1,4 +1,4 @@
-export type MessageType =
+export type ClientMessageType =
   | {
       sentByMe: true;
       sender?: undefined;
@@ -8,4 +8,14 @@ export type MessageType =
       sentByMe: false;
       sender: string;
       content: string;
+    };
+
+export type ChatroomInfoType =
+  | {
+      success: true;
+      name: string;
+      expiresAt: number;
+    }
+  | {
+      success: false;
     };

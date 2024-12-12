@@ -1,12 +1,24 @@
 "use client";
 
-import { LogOut, Pencil, SendHorizontal } from "lucide-react";
+import { LoaderCircle, LogOut, Pencil, SendHorizontal } from "lucide-react";
 import Link from "next/link";
-import { use, useState } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import { io } from "socket.io-client";
-import { MessageType } from "./types";
+import { ClientMessageType, ChatroomInfoType } from "./types";
+import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const socket = io("http://localhost:4000");
+const socket = io("http://localhost:4444");
 
 export default function RoomPage({
   params,
@@ -15,63 +27,80 @@ export default function RoomPage({
 }) {
   const { code } = use(params);
 
-  const [currentUser, setCurrentUser] = useState("Nathan");
-  const [onlineUsers, setOnlineUsers] = useState([
-    "Michael Jackson",
-    "Nathan",
-    "Jimmy",
-  ]);
-  const [messages, setMessages] = useState<MessageType>();
+  const [currentUser, setCurrentUser] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState(["Guest", "User"]);
+  const [messages, setMessages] = useState<ClientMessageType[]>([]);
+  const [chatroomInfo, setChatroomInfo] = useState<ChatroomInfoType>();
+
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const getChatroomInfo = async () => {
+      const res = await fetch("http://localhost:4444/rooms/test");
+      const resJson: ChatroomInfoType = await res.json();
+      setChatroomInfo(resJson);
+    };
+
+    getChatroomInfo();
+
+    socket.on("receiveMessage", (sender, content) => {
+      let newMessage: ClientMessageType;
+      alert(`Sender: ${sender}, User: ${currentUser}`);
+      if (sender === currentUser) newMessage = { sentByMe: true, content };
+      else newMessage = { sentByMe: false, sender, content };
+      setMessages(prevState => [...prevState, newMessage]);
+      mainRef.current?.scrollTo({
+        top: mainRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+  }, []);
+
+  if (!chatroomInfo) return <ChatroomLoading />;
+  if (!chatroomInfo.success) return notFound();
+  if (currentUser === "") return <NameDialog setCurrentUser={setCurrentUser} />;
 
   return (
     <div className="fixed flex w-full h-full">
       <Sidebar onlineUsers={onlineUsers} currentUser={currentUser} />
-      <main className="h-full flex-grow relative">
-        <ChatroomInfo chatroomName="Chatroom Name" code={code} />
+      <main
+        className="relative h-full flex-grow overflow-y-scroll"
+        ref={mainRef}
+      >
+        <ChatroomInfo chatroomName={chatroomInfo.name} code={code} />
         <ul
-          className="overflow-y-scroll px-4 py-2 space-y-4"
+          className="px-4 pt-16 min-h-[90vh]"
           aria-label="Chatroom conversation"
           aria-live="polite"
           tabIndex={0}
         >
-          <Message
-            sentByMe={true}
-            content="hey man what's up... how are you doin today?"
-          />
-          <Message
-            sentByMe={false}
-            sender="Michael Jackson"
-            content="Just beat it, beat it!"
-          />
+          {messages.map((msg, msgIndex) => {
+            let hideName = false;
+            if (msgIndex > 0 && messages[msgIndex - 1].sender === msg.sender)
+              hideName = true;
+            return <Message {...msg} key={msgIndex} hideName={hideName} />;
+          })}
         </ul>
-        <div className="absolute bottom-0 w-full p-3">
-          <form
-            className="flex items-center h-12 rounded-full bg-gray-50 justify-between border-2 border-gray-200"
-            onSubmit={e => e.preventDefault()}
-          >
-            <input
-              className="ml-6 bg-transparent w-full outline-none pr-2"
-              placeholder="Type a message..."
-              aria-label="Message input box"
-            />
-            <button className="bg-cyan-500 h-5/6 aspect-square rounded-full mr-1 flex items-center justify-center">
-              <SendHorizontal className="w-7/12 h-7/12 stroke-white" />
-            </button>
-          </form>
-        </div>
+        <InputBox />
       </main>
     </div>
   );
 }
 
-function Message({ sentByMe, sender, content }: MessageType) {
+function Message({
+  sentByMe,
+  sender,
+  content,
+  hideName,
+}: ClientMessageType & { hideName: boolean }) {
   return (
-    <li className="space-y-1">
-      {sentByMe ? (
-        <p className="text-gray-800">me</p>
-      ) : (
-        <p className="text-gray-600">{sender}</p>
-      )}
+    <li className={`space-y-1 ${hideName ? "mt-2" : "mt-4"}`}>
+      {!hideName &&
+        (sentByMe ? (
+          <p className="text-gray-800">You</p>
+        ) : (
+          <p className="text-gray-600">{sender}</p>
+        ))}
       <p
         className={`${
           sentByMe ? "bg-cyan-100" : "bg-gray-50"
@@ -92,11 +121,11 @@ function Sidebar({
 }) {
   return (
     <aside className="hidden md:w-60 lg:w-72 h-full bg-gray-50 border-r-2 md:block relative">
-      <div className="p-4 space-y-4 overflow-y-scroll">
+      <div className="p-4 space-y-2 overflow-y-scroll">
         <h2 className="uppercase tracking-wider text-gray-700">
           Online Users - {onlineUsers.length}
         </h2>
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {onlineUsers.map((userName, userIndex) => (
             <UserInList name={userName} key={userIndex} />
           ))}
@@ -131,7 +160,7 @@ function ChatroomInfo({
   code: string;
 }) {
   return (
-    <header className="bg-white w-full border-b-2 py-2 px-4 flex items-center justify-between">
+    <header className="fixed bg-white w-full border-b-2 py-2 px-4 flex items-center justify-between">
       <div>
         <h1 className="text-2xl font-bold">
           {chatroomName}
@@ -145,5 +174,91 @@ function ChatroomInfo({
         <LogOut />
       </Link>
     </header>
+  );
+}
+
+function InputBox() {
+  const [messageInput, setMessageInput] = useState("");
+
+  function handleMessageInput() {
+    if (messageInput !== "") socket.emit("sendMessage", messageInput);
+    setMessageInput("");
+  }
+
+  return (
+    <div className="sticky bottom-0 w-full p-3">
+      <form
+        className="flex items-center h-12 rounded-full bg-gray-50 justify-between border-2 border-gray-200"
+        onSubmit={e => e.preventDefault()}
+      >
+        <input
+          className="ml-6 bg-transparent w-full outline-none pr-2"
+          placeholder="Type a message..."
+          aria-label="Message input box"
+          value={messageInput}
+          onChange={e => setMessageInput(e.target.value)}
+        />
+        <button
+          className="bg-cyan-500 h-5/6 aspect-square rounded-full mr-1 flex items-center justify-center"
+          onClick={handleMessageInput}
+        >
+          <SendHorizontal className="w-7/12 h-7/12 stroke-white" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function ChatroomLoading() {
+  return (
+    <div className="flex flex-col mt-8 text-2xl items-center">
+      <h1>Loading your chatroom...</h1>
+      <LoaderCircle className="animate-spin mt-6" width={48} height={48} />
+    </div>
+  );
+}
+
+function NameDialog({
+  setCurrentUser,
+}: {
+  setCurrentUser: React.Dispatch<React.SetStateAction<string>>;
+}) {
+  const [nameInput, setNameInput] = useState("");
+
+  function onSubmit() {
+    if (nameInput !== "") {
+      socket.emit("setName", nameInput);
+      setCurrentUser(nameInput);
+    }
+  }
+
+  return (
+    <Dialog open={true}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Set your name</DialogTitle>
+          <DialogDescription>
+            You're currently joining a chatroom. What name would you like to
+            chat under?
+          </DialogDescription>
+        </DialogHeader>
+        <form className="space-y-2" onSubmit={onSubmit}>
+          <Label htmlFor="name" className="text-right">
+            Name
+          </Label>
+          <Input
+            id="name"
+            value={nameInput}
+            className="col-span-3"
+            onChange={e => setNameInput(e.target.value)}
+          />
+          <DialogFooter>
+            <Button type="submit" className="mt-4">
+              Join chatroom
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
