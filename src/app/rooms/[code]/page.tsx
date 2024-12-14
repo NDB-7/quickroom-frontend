@@ -36,16 +36,21 @@ export default function RoomPage({
 
   useEffect(() => {
     const getChatroomInfo = async () => {
-      const res = await fetch("http://localhost:4444/rooms/test");
-      const resJson: ChatroomInfoType = await res.json();
-      setChatroomInfo(resJson);
+      try {
+        const res = await fetch("http://localhost:4444/rooms/test");
+        const resJson: ChatroomInfoType = await res.json();
+        setChatroomInfo(resJson);
+      } catch {
+        setChatroomInfo({ success: false });
+      }
     };
 
     getChatroomInfo();
+  }, []);
 
+  useEffect(() => {
     socket.on("receiveMessage", (sender, content) => {
       let newMessage: ClientMessageType;
-      alert(`Sender: ${sender}, User: ${currentUser}`);
       if (sender === currentUser) newMessage = { sentByMe: true, content };
       else newMessage = { sentByMe: false, sender, content };
       setMessages(prevState => [...prevState, newMessage]);
@@ -54,7 +59,11 @@ export default function RoomPage({
         behavior: "smooth",
       });
     });
-  }, []);
+
+    return () => {
+      socket.off("receiveMessage");
+    };
+  }, [currentUser]);
 
   if (!chatroomInfo) return <ChatroomLoading />;
   if (!chatroomInfo.success) return notFound();
@@ -62,6 +71,7 @@ export default function RoomPage({
 
   return (
     <div className="fixed flex w-full h-full">
+      <div className="blur-overlay" />
       <Sidebar onlineUsers={onlineUsers} currentUser={currentUser} />
       <main
         className="relative h-full flex-grow overflow-y-scroll"
@@ -69,7 +79,7 @@ export default function RoomPage({
       >
         <ChatroomInfo chatroomName={chatroomInfo.name} code={code} />
         <ul
-          className="px-4 pt-16 min-h-[90vh]"
+          className="px-4 pt-16 min-h-[90vh] pb-9"
           aria-label="Chatroom conversation"
           aria-live="polite"
           tabIndex={0}
@@ -125,6 +135,7 @@ function Sidebar({
         <h2 className="uppercase tracking-wider text-gray-700">
           Online Users - {onlineUsers.length}
         </h2>
+        <UserInList name={currentUser} />
         <ul className="space-y-1">
           {onlineUsers.map((userName, userIndex) => (
             <UserInList name={userName} key={userIndex} />
