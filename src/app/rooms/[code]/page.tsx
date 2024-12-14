@@ -2,7 +2,7 @@
 
 import { LoaderCircle, LogOut, Pencil, SendHorizontal } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, use, useRef } from "react";
+import { useEffect, useState, use, useRef, FormEvent } from "react";
 import { io } from "socket.io-client";
 import { ClientMessageType, ChatroomInfoType } from "./types";
 import { notFound } from "next/navigation";
@@ -229,17 +229,33 @@ function ChatroomLoading() {
   );
 }
 
+type SetNameResponse =
+  | {
+      success: true;
+    }
+  | {
+      success: false;
+      message: string;
+    };
+
 function NameDialog({
   setCurrentUser,
 }: {
   setCurrentUser: React.Dispatch<React.SetStateAction<string>>;
 }) {
   const [nameInput, setNameInput] = useState("");
+  const [nameError, setNameError] = useState("");
 
-  function onSubmit() {
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
     if (nameInput !== "") {
-      socket.emit("setName", nameInput);
-      setCurrentUser(nameInput);
+      socket.emit("setName", nameInput, (response: SetNameResponse) => {
+        if (response.success === false) {
+          setNameError(response.message);
+        } else {
+          setCurrentUser(nameInput);
+        }
+      });
     }
   }
 
@@ -263,6 +279,7 @@ function NameDialog({
             className="col-span-3"
             onChange={e => setNameInput(e.target.value)}
           />
+          {nameError && <p className="text-destructive text-sm">{nameError}</p>}
           <DialogFooter>
             <Button type="submit" className="mt-4">
               Join chatroom
