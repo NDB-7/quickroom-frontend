@@ -28,7 +28,8 @@ export default function RoomPage({
   const { code } = use(params);
 
   const [currentUser, setCurrentUser] = useState("");
-  const [onlineUsers, setOnlineUsers] = useState(["Guest", "User"]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [offlineUsers, setOfflineUsers] = useState([]);
   const [messages, setMessages] = useState<ClientMessageType[]>([]);
   const [chatroomInfo, setChatroomInfo] = useState<ChatroomInfoType>();
 
@@ -46,6 +47,11 @@ export default function RoomPage({
     };
 
     getChatroomInfo();
+
+    socket.on("updateUserList", (onlineUserList, offlineUserList) => {
+      setOnlineUsers(onlineUserList);
+      setOfflineUsers(offlineUserList);
+    });
   }, []);
 
   useEffect(() => {
@@ -72,7 +78,11 @@ export default function RoomPage({
   return (
     <div className="fixed flex w-full h-full">
       <div className="blur-overlay" />
-      <Sidebar onlineUsers={onlineUsers} currentUser={currentUser} />
+      <Sidebar
+        onlineUsers={onlineUsers}
+        offlineUsers={offlineUsers}
+        currentUser={currentUser}
+      />
       <main
         className="relative h-full flex-grow overflow-y-scroll"
         ref={mainRef}
@@ -124,23 +134,40 @@ function Message({
 
 function Sidebar({
   onlineUsers,
+  offlineUsers,
   currentUser,
 }: {
   onlineUsers: string[];
+  offlineUsers: string[];
   currentUser: string;
 }) {
   return (
     <aside className="hidden md:w-60 lg:w-72 h-full bg-gray-50 border-r-2 md:block relative">
-      <div className="p-4 space-y-2 overflow-y-scroll">
-        <h2 className="uppercase tracking-wider text-gray-700">
-          Online Users - {onlineUsers.length}
-        </h2>
-        <UserInList name={currentUser} />
-        <ul className="space-y-1">
-          {onlineUsers.map((userName, userIndex) => (
-            <UserInList name={userName} key={userIndex} />
-          ))}
-        </ul>
+      <div className="p-4 space-y-4 overflow-y-scroll">
+        {onlineUsers.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="uppercase tracking-wider text-gray-700">
+              Online Users - {onlineUsers.length}
+            </h2>
+            <ul className="space-y-1">
+              {onlineUsers.map((userName, userIndex) => (
+                <UserInList name={userName} key={userIndex} online={true} />
+              ))}
+            </ul>
+          </div>
+        )}
+        {offlineUsers.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="uppercase tracking-wider text-gray-700">
+              Offline Users - {offlineUsers.length}
+            </h2>
+            <ul className="space-y-1">
+              {offlineUsers.map((userName, userIndex) => (
+                <UserInList name={userName} key={userIndex} online={false} />
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       <div className="absolute bottom-0 w-full h-16 border-t-2 flex items-center bg-gray-50">
         <div className="w-full flex justify-between items-center p-6">
@@ -152,10 +179,14 @@ function Sidebar({
   );
 }
 
-function UserInList({ name }: { name: string }) {
+function UserInList({ name, online }: { name: string; online: boolean }) {
   return (
     <li className="text-lg flex items-center gap-3">
-      <div className="h-2 w-2 bg-green-500 rounded-full" />
+      <div
+        className={`h-2 w-2 ${
+          online ? "bg-green-500" : "bg-gray-400"
+        } rounded-full`}
+      />
       <span className="text-gray-800 text-ellipsis overflow-hidden whitespace-nowrap hover:whitespace-normal">
         {name}
       </span>
