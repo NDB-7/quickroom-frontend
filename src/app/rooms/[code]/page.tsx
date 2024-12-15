@@ -55,10 +55,11 @@ export default function RoomPage({
   }, []);
 
   useEffect(() => {
-    socket.on("receiveMessage", (sender, content) => {
+    socket.on("receiveMessage", (sender, content, serverNotification) => {
       let newMessage: ClientMessageType;
       if (sender === currentUser) newMessage = { sentByMe: true, content };
-      else newMessage = { sentByMe: false, sender, content };
+      else
+        newMessage = { sentByMe: false, sender, content, serverNotification };
       setMessages(prevState => [...prevState, newMessage]);
       mainRef.current?.scrollTo({
         top: mainRef.current.scrollHeight,
@@ -98,7 +99,14 @@ export default function RoomPage({
             let hideName = false;
             if (msgIndex > 0 && messages[msgIndex - 1].sender === msg.sender)
               hideName = true;
-            return <Message {...msg} key={msgIndex} hideName={hideName} />;
+            return (
+              <Message
+                {...msg}
+                key={msgIndex}
+                hideName={hideName}
+                onlineUsers={onlineUsers}
+              />
+            );
           })}
         </ul>
         <InputBox />
@@ -112,24 +120,39 @@ function Message({
   sender,
   content,
   hideName,
-}: ClientMessageType & { hideName: boolean }) {
-  return (
-    <li className={`space-y-1 ${hideName ? "mt-2" : "mt-4"}`}>
-      {!hideName &&
-        (sentByMe ? (
-          <p className="text-gray-800">You</p>
-        ) : (
-          <p className="text-gray-600">{sender}</p>
-        ))}
-      <p
-        className={`${
-          sentByMe ? "bg-cyan-100" : "bg-gray-50"
-        } rounded-lg max-w-xl inline-block py-1 px-2 shadow-sm`}
-      >
-        {content}
-      </p>
-    </li>
-  );
+  onlineUsers,
+  serverNotification,
+}: ClientMessageType & { hideName: boolean; onlineUsers: string[] }) {
+  if (serverNotification === true) {
+    return (
+      <li className="text-center mt-4 text-gray-600 text-sm">{content}</li>
+    );
+  } else
+    return (
+      <li className={`space-y-1 ${hideName ? "mt-2" : "mt-4"}`}>
+        {!hideName &&
+          (sentByMe ? (
+            <p className="text-gray-800">You</p>
+          ) : (
+            <p
+              className={
+                onlineUsers.includes(sender)
+                  ? "text-gray-600"
+                  : "text-gray-500 italic"
+              }
+            >
+              {sender}
+            </p>
+          ))}
+        <p
+          className={`${
+            sentByMe ? "bg-cyan-100" : "bg-gray-50"
+          } rounded-lg max-w-xl inline-block py-1 px-2 shadow-sm`}
+        >
+          {content}
+        </p>
+      </li>
+    );
 }
 
 function Sidebar({
