@@ -193,10 +193,7 @@ function Sidebar({
         )}
       </div>
       <div className="absolute bottom-0 w-full h-16 border-t-2 flex items-center bg-gray-50">
-        <div className="w-full flex justify-between items-center p-6">
-          <span className="text-lg">{currentUser}</span>
-          <Pencil />
-        </div>
+        <div className="w-full p-6 text-lg">{currentUser}</div>
       </div>
     </aside>
   );
@@ -260,6 +257,7 @@ function InputBox() {
           className="ml-6 bg-transparent w-full outline-none pr-2"
           placeholder="Type a message..."
           aria-label="Message input box"
+          maxLength={1000}
           value={messageInput}
           onChange={e => setMessageInput(e.target.value)}
         />
@@ -330,6 +328,7 @@ function NameDialog({
           <Input
             id="name"
             value={nameInput}
+            maxLength={20}
             className="col-span-3"
             onChange={e => setNameInput(e.target.value)}
           />
