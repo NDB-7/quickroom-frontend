@@ -52,6 +52,16 @@ export default function RoomPage({
       setOnlineUsers(onlineUserList);
       setOfflineUsers(offlineUserList);
     });
+
+    const sessionId = localStorage.getItem("sessionId");
+
+    if (sessionId) {
+      socket.emit("rejoin", sessionId, (response: string) => {
+        if (response) {
+          setCurrentUser(response);
+        }
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -243,7 +253,12 @@ function InputBox() {
   const [messageInput, setMessageInput] = useState("");
 
   function handleMessageInput() {
-    if (messageInput !== "") socket.emit("sendMessage", messageInput);
+    if (messageInput !== "")
+      socket.emit(
+        "sendMessage",
+        messageInput,
+        localStorage.getItem("sessionId")
+      );
     setMessageInput("");
   }
 
@@ -284,6 +299,7 @@ function ChatroomLoading() {
 type SetNameResponse =
   | {
       success: true;
+      sessionId: string;
     }
   | {
       success: false;
@@ -305,6 +321,7 @@ function NameDialog({
         if (response.success === false) {
           setNameError(response.message);
         } else {
+          localStorage.setItem("sessionId", response.sessionId);
           setCurrentUser(nameInput);
         }
       });
