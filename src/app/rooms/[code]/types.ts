@@ -27,3 +27,23 @@ export type ChatroomInfoType =
   | {
       success: false;
     };
+
+export type RejoinResponse =
+  | {
+      success: true;
+      name: string;
+    }
+  | {
+      success: false;
+      message?: string;
+    };
+
+export type SetNameResponse =
+  | {
+      success: true;
+      sessionId: string;
+    }
+  | {
+      success: false;
+      message: string;
+    };

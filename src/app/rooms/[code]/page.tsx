@@ -4,8 +4,13 @@ import { LoaderCircle, LogOut, Pencil, SendHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, use, useRef, FormEvent } from "react";
 import { io } from "socket.io-client";
-import { ClientMessageType, ChatroomInfoType } from "./types";
-import { notFound } from "next/navigation";
+import {
+  ClientMessageType,
+  ChatroomInfoType,
+  SetNameResponse,
+  RejoinResponse,
+} from "./types";
+import { notFound, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,12 +31,14 @@ export default function RoomPage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = use(params);
+  const router = useRouter();
 
   const [currentUser, setCurrentUser] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [offlineUsers, setOfflineUsers] = useState([]);
   const [messages, setMessages] = useState<ClientMessageType[]>([]);
   const [chatroomInfo, setChatroomInfo] = useState<ChatroomInfoType>();
+  const [sessionInUse, setSessionInUse] = useState<string>();
 
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -56,9 +63,13 @@ export default function RoomPage({
     const sessionId = localStorage.getItem("sessionId");
 
     if (sessionId) {
-      socket.emit("rejoin", sessionId, (response: string) => {
-        if (response) {
-          setCurrentUser(response);
+      socket.emit("rejoin", sessionId, (response: RejoinResponse) => {
+        if (response.success) {
+          setCurrentUser(response.name);
+        } else {
+          if (response.message) {
+            setSessionInUse(response.message);
+          }
         }
       });
     }
@@ -83,6 +94,7 @@ export default function RoomPage({
   }, [currentUser]);
 
   if (!chatroomInfo) return <ChatroomLoading />;
+  if (sessionInUse) return <SessionInUse>{sessionInUse}</SessionInUse>;
   if (!chatroomInfo.success) return notFound();
   if (currentUser === "") return <NameDialog setCurrentUser={setCurrentUser} />;
 
@@ -296,15 +308,13 @@ function ChatroomLoading() {
   );
 }
 
-type SetNameResponse =
-  | {
-      success: true;
-      sessionId: string;
-    }
-  | {
-      success: false;
-      message: string;
-    };
+function SessionInUse({ children }: { children: React.ReactNode }) {
+  return (
+    <h1 className="mt-8 text-2xl text-center mx-auto px-4 max-w-3xl">
+      {children}
+    </h1>
+  );
+}
 
 function NameDialog({
   setCurrentUser,
