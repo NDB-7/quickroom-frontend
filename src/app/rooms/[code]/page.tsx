@@ -354,8 +354,8 @@ function NameDialog({
         <DialogHeader>
           <DialogTitle>Set your name</DialogTitle>
           <DialogDescription>
-            You're currently joining a chatroom. What name would you like to
-            chat under?
+            You&apos;re currently joining a chatroom. What name would you like
+            to chat under?
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-2" onSubmit={onSubmit}>
