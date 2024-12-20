@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, LogOut, Pencil, SendHorizontal } from "lucide-react";
+import { LoaderCircle, LogOut, SendHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, use, useRef, FormEvent } from "react";
 import { io } from "socket.io-client";
@@ -10,7 +10,7 @@ import {
   SetNameResponse,
   RejoinResponse,
 } from "./types";
-import { notFound, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const socket = io("http://localhost:4444");
+const socket = io(process.env.NEXT_PUBLIC_SERVER_URL);
 
 export default function RoomPage({
   params,
@@ -31,7 +31,6 @@ export default function RoomPage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = use(params);
-  const router = useRouter();
 
   const [currentUser, setCurrentUser] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
@@ -41,11 +40,15 @@ export default function RoomPage({
   const [sessionInUse, setSessionInUse] = useState<string>();
 
   const mainRef = useRef<HTMLDivElement>(null);
+  const sendAudioRef = useRef<HTMLAudioElement>(null);
+  const receiveAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     const getChatroomInfo = async () => {
       try {
-        const res = await fetch("http://localhost:4444/rooms/test");
+        const res = await fetch(
+          process.env.NEXT_PUBLIC_SERVER_URL + "/rooms/test"
+        );
         const resJson: ChatroomInfoType = await res.json();
         setChatroomInfo(resJson);
       } catch {
@@ -73,14 +76,21 @@ export default function RoomPage({
         }
       });
     }
+
+    sendAudioRef.current = new Audio("/send.mp3");
+    receiveAudioRef.current = new Audio("/receive.mp3");
   }, []);
 
   useEffect(() => {
     socket.on("receiveMessage", (sender, content, serverNotification) => {
       let newMessage: ClientMessageType;
-      if (sender === currentUser) newMessage = { sentByMe: true, content };
-      else
+      if (sender === currentUser) {
+        newMessage = { sentByMe: true, content };
+        playAudio(sendAudioRef.current);
+      } else {
         newMessage = { sentByMe: false, sender, content, serverNotification };
+        playAudio(receiveAudioRef.current);
+      }
       setMessages(prevState => [...prevState, newMessage]);
       mainRef.current?.scrollTo({
         top: mainRef.current.scrollHeight,
@@ -252,7 +262,7 @@ function ChatroomInfo({
             ({code})
           </span>
         </h1>
-        <p className="text-sm text-gray-500">Expires in 53:31</p>
+        <p className="text-sm text-gray-500">Does Not Expire</p>
       </div>
       <Link href="/" aria-label="Leave Room">
         <LogOut />
@@ -369,4 +379,17 @@ function NameDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function playAudio(audio: HTMLAudioElement | null) {
+  if (!audio) return;
+  if (!audio.paused) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+  try {
+    audio.play();
+  } catch (e) {
+    console.log(e);
+  }
 }
