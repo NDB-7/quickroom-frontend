@@ -41,9 +41,14 @@ export type RejoinResponse =
 export type SetNameResponse =
   | {
       success: true;
-      sessionId: string;
+      session: { room: string; id: string };
     }
   | {
       success: false;
       message: string;
     };
+
+export type SessionType = {
+  room: string;
+  id: string;
+};

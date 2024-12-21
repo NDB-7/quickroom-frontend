@@ -9,6 +9,7 @@ import {
   ChatroomInfoType,
   SetNameResponse,
   RejoinResponse,
+  SessionType,
 } from "./types";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export default function RoomPage({
   const [messages, setMessages] = useState<ClientMessageType[]>([]);
   const [chatroomInfo, setChatroomInfo] = useState<ChatroomInfoType>();
   const [sessionInUse, setSessionInUse] = useState<string>();
+  const [session, setSession] = useState<SessionType>();
 
   const mainRef = useRef<HTMLDivElement>(null);
   const sendAudioRef = useRef<HTMLAudioElement>(null);
@@ -47,7 +49,7 @@ export default function RoomPage({
     const getChatroomInfo = async () => {
       try {
         const res = await fetch(
-          process.env.NEXT_PUBLIC_SERVER_URL + "/rooms/test"
+          process.env.NEXT_PUBLIC_SERVER_URL + `/rooms/${code}`
         );
         const resJson: ChatroomInfoType = await res.json();
         setChatroomInfo(resJson);
@@ -63,12 +65,15 @@ export default function RoomPage({
       setOfflineUsers(offlineUserList);
     });
 
-    const sessionId = localStorage.getItem("sessionId");
+    const sessionString = localStorage.getItem("session");
+    const parsedSession: SessionType =
+      sessionString && JSON.parse(sessionString);
 
-    if (sessionId) {
-      socket.emit("rejoin", sessionId, (response: RejoinResponse) => {
+    if (parsedSession) {
+      socket.emit("rejoin", parsedSession, (response: RejoinResponse) => {
         if (response.success) {
           setCurrentUser(response.name);
+          setSession(parsedSession);
         } else {
           if (response.message) {
             setSessionInUse(response.message);
@@ -106,7 +111,10 @@ export default function RoomPage({
   if (!chatroomInfo) return <ChatroomLoading />;
   if (sessionInUse) return <SessionInUse>{sessionInUse}</SessionInUse>;
   if (!chatroomInfo.success) return notFound();
-  if (currentUser === "") return <NameDialog setCurrentUser={setCurrentUser} />;
+  if (currentUser === "")
+    return (
+      <NameDialog setCurrentUser={setCurrentUser} setSession={setSession} />
+    );
 
   return (
     <div className="fixed flex w-full h-full">
@@ -141,7 +149,7 @@ export default function RoomPage({
             );
           })}
         </ul>
-        <InputBox />
+        {session && <InputBox session={session} />}
       </main>
     </div>
   );
@@ -271,16 +279,11 @@ function ChatroomInfo({
   );
 }
 
-function InputBox() {
+function InputBox({ session }: { session: SessionType }) {
   const [messageInput, setMessageInput] = useState("");
 
   function handleMessageInput() {
-    if (messageInput !== "")
-      socket.emit(
-        "sendMessage",
-        messageInput,
-        localStorage.getItem("sessionId")
-      );
+    if (messageInput !== "") socket.emit("sendMessage", messageInput, session);
     setMessageInput("");
   }
 
@@ -328,8 +331,10 @@ function SessionInUse({ children }: { children: React.ReactNode }) {
 
 function NameDialog({
   setCurrentUser,
+  setSession,
 }: {
   setCurrentUser: React.Dispatch<React.SetStateAction<string>>;
+  setSession: React.Dispatch<React.SetStateAction<SessionType | undefined>>;
 }) {
   const [nameInput, setNameInput] = useState("");
   const [nameError, setNameError] = useState("");
@@ -341,7 +346,13 @@ function NameDialog({
         if (response.success === false) {
           setNameError(response.message);
         } else {
-          localStorage.setItem("sessionId", response.sessionId);
+          const { room, id } = response.session;
+          const sessionString = JSON.stringify({
+            room,
+            id,
+          });
+          localStorage.setItem("session", sessionString);
+          setSession({ room, id });
           setCurrentUser(nameInput);
         }
       });
