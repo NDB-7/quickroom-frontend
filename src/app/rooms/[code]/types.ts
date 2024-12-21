@@ -35,6 +35,7 @@ export type RejoinResponse =
     }
   | {
       success: false;
+      expired: boolean;
       message?: string;
     };
 

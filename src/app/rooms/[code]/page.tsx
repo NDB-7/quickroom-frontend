@@ -40,6 +40,10 @@ export default function RoomPage({
   const [chatroomInfo, setChatroomInfo] = useState<ChatroomInfoType>();
   const [sessionInUse, setSessionInUse] = useState<string>();
   const [session, setSession] = useState<SessionType>();
+  const [roomExpired, setRoomExpired] = useState(false);
+  const [expirationString, setExpirationString] = useState(
+    "Calculating expiration time..."
+  );
 
   const mainRef = useRef<HTMLDivElement>(null);
   const sendAudioRef = useRef<HTMLAudioElement>(null);
@@ -48,11 +52,11 @@ export default function RoomPage({
   useEffect(() => {
     const getChatroomInfo = async () => {
       try {
-        const res = await fetch(
+        const resString = await fetch(
           process.env.NEXT_PUBLIC_SERVER_URL + `/rooms/${code}`
         );
-        const resJson: ChatroomInfoType = await res.json();
-        setChatroomInfo(resJson);
+        const resData: ChatroomInfoType = await resString.json();
+        setChatroomInfo(resData);
       } catch {
         setChatroomInfo({ success: false });
       }
@@ -64,6 +68,8 @@ export default function RoomPage({
       setOnlineUsers(onlineUserList);
       setOfflineUsers(offlineUserList);
     });
+
+    socket.on("roomExpired", () => setRoomExpired(true));
 
     const sessionString = localStorage.getItem("session");
     const parsedSession: SessionType =
@@ -78,13 +84,33 @@ export default function RoomPage({
           if (response.message) {
             setSessionInUse(response.message);
           }
+          if (response.expired) {
+            localStorage.removeItem("session");
+          }
         }
       });
     }
 
     sendAudioRef.current = new Audio("/send.mp3");
     receiveAudioRef.current = new Audio("/receive.mp3");
+
+    return () => {
+      socket.off("updateUserList");
+      socket.off("roomExpired");
+    };
   }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (chatroomInfo?.success) {
+        const msUntilExpiration = chatroomInfo.expiresAt - Date.now();
+        const timeString = formatTime(msUntilExpiration);
+        setExpirationString(`Expires in ${timeString}`);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [chatroomInfo]);
 
   useEffect(() => {
     socket.on("receiveMessage", (sender, content, serverNotification) => {
@@ -108,6 +134,7 @@ export default function RoomPage({
     };
   }, [currentUser]);
 
+  if (roomExpired) return <RoomExpired />;
   if (!chatroomInfo) return <ChatroomLoading />;
   if (sessionInUse) return <SessionInUse>{sessionInUse}</SessionInUse>;
   if (!chatroomInfo.success) return notFound();
@@ -129,10 +156,14 @@ export default function RoomPage({
         currentUser={currentUser}
       />
       <main
-        className="relative h-full flex-grow overflow-y-scroll"
+        className="relative h-full flex-grow overflow-y-scroll overflow-x-hidden"
         ref={mainRef}
       >
-        <ChatroomInfo chatroomName={chatroomInfo.name} code={code} />
+        <ChatroomInfo
+          chatroomName={chatroomInfo.name}
+          code={code}
+          expirationString={expirationString}
+        />
         <ul
           className="px-4 pt-16 min-h-[90vh] pb-9"
           aria-label="Chatroom conversation"
@@ -191,7 +222,7 @@ function Message({
         <p
           className={`${
             sentByMe ? "bg-cyan-100" : "bg-gray-50"
-          } rounded-lg max-w-xl inline-block py-1 px-2 shadow-sm`}
+          } rounded-lg max-w-xl text-wrap break-words inline-block py-1 px-2 shadow-sm`}
         >
           {content}
         </p>
@@ -261,9 +292,11 @@ function UserInList({ name, online }: { name: string; online: boolean }) {
 function ChatroomInfo({
   chatroomName,
   code,
+  expirationString,
 }: {
   chatroomName: string;
   code: string;
+  expirationString: string;
 }) {
   return (
     <header className="fixed bg-white w-full border-b-2 py-2 px-4 flex items-center justify-between">
@@ -274,7 +307,7 @@ function ChatroomInfo({
             ({code})
           </span>
         </h1>
-        <p className="text-sm text-gray-500">Does Not Expire</p>
+        <p className="text-sm text-gray-500">{expirationString}</p>
       </div>
       <Link href="/" aria-label="Leave Room">
         <LogOut />
@@ -398,6 +431,25 @@ function NameDialog({
   );
 }
 
+function RoomExpired() {
+  return (
+    <Dialog open={true}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Room expired</DialogTitle>
+          <DialogDescription>
+            This room has now expired. Please close the tab or return to the
+            homepage to create another chatroom.
+          </DialogDescription>
+        </DialogHeader>
+        <Button asChild>
+          <Link href="/">Return to Home</Link>
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function playAudio(audio: HTMLAudioElement | null) {
   if (!audio) return;
   if (!audio.paused) {
@@ -409,4 +461,16 @@ function playAudio(audio: HTMLAudioElement | null) {
   } catch (e) {
     console.log(e);
   }
+}
+
+// Format to MM:SS
+function formatTime(ms: number) {
+  const toTwoDigits = (num: number) => String(num).padStart(2, "0");
+
+  const timeInSeconds = Math.round(ms / 1000);
+
+  const minutes = toTwoDigits(Math.floor((timeInSeconds % 3600) / 60));
+  const seconds = toTwoDigits(timeInSeconds % 60);
+
+  return `${minutes}:${seconds}`;
 }
