@@ -222,7 +222,7 @@ function Message({
         <p
           className={`${
             sentByMe ? "bg-cyan-100" : "bg-gray-50"
-          } rounded-lg max-w-xl text-wrap break-words inline-block py-1 px-2 shadow-sm`}
+          } rounded-lg max-w-xl text-wrap break-words inline-block py-1 px-2 shadow-sm animate-pop-in`}
         >
           {content}
         </p>
