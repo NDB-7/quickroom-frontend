@@ -113,7 +113,11 @@ export default function RoomPage({
   if (!chatroomInfo.success) return notFound();
   if (currentUser === "")
     return (
-      <NameDialog setCurrentUser={setCurrentUser} setSession={setSession} />
+      <NameDialog
+        setCurrentUser={setCurrentUser}
+        setSession={setSession}
+        room={code}
+      />
     );
 
   return (
@@ -332,9 +336,11 @@ function SessionInUse({ children }: { children: React.ReactNode }) {
 function NameDialog({
   setCurrentUser,
   setSession,
+  room,
 }: {
   setCurrentUser: React.Dispatch<React.SetStateAction<string>>;
   setSession: React.Dispatch<React.SetStateAction<SessionType | undefined>>;
+  room: string;
 }) {
   const [nameInput, setNameInput] = useState("");
   const [nameError, setNameError] = useState("");
@@ -342,7 +348,7 @@ function NameDialog({
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (nameInput !== "") {
-      socket.emit("setName", nameInput, (response: SetNameResponse) => {
+      socket.emit("setName", nameInput, room, (response: SetNameResponse) => {
         if (response.success === false) {
           setNameError(response.message);
         } else {
@@ -353,7 +359,7 @@ function NameDialog({
           });
           localStorage.setItem("session", sessionString);
           setSession({ room, id });
-          setCurrentUser(nameInput);
+          setCurrentUser(nameInput.trim());
         }
       });
     }
