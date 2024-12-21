@@ -82,7 +82,7 @@ body {
 
 .animate-pop-in {
   transform-origin: top left;
-  animation: pop-in 0.15s ease-out;
+  animation: pop-in 0.1s ease-out;
 }
 
 @keyframes unblur {
@@ -98,8 +98,8 @@ body {
 
 @keyframes pop-in {
   0% {
-    scale: 0;
-    opacity: 0;
+    scale: 0.5;
+    opacity: 0.15;
   }
   100% {
     scale: 1;

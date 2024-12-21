@@ -207,7 +207,9 @@ function Message({
       <li className={`space-y-1 ${hideName ? "mt-2" : "mt-4"}`}>
         {!hideName &&
           (sentByMe ? (
-            <p className="text-gray-800">You</p>
+            <p className="text-gray-800">
+              You <span className="text-xs text-gray-500 ml-1">11:25 AM</span>
+            </p>
           ) : (
             <p
               className={
@@ -267,8 +269,15 @@ function Sidebar({
           </div>
         )}
       </div>
-      <div className="absolute bottom-0 w-full h-16 border-t-2 flex items-center bg-gray-50">
-        <div className="w-full p-6 text-lg">{currentUser}</div>
+      <div className="absolute bottom-0 w-full h-16 border-t-2 flex items-center justify-between bg-gray-50 p-6 text-lg">
+        <span className="">{currentUser}</span>
+        <Link
+          href="/"
+          onClick={() => localStorage.removeItem("session")}
+          aria-label="Leave Room"
+        >
+          <LogOut />
+        </Link>
       </div>
     </aside>
   );
@@ -309,7 +318,11 @@ function ChatroomInfo({
         </h1>
         <p className="text-sm text-gray-500">{expirationString}</p>
       </div>
-      <Link href="/" aria-label="Leave Room">
+      <Link
+        href="/"
+        onClick={() => localStorage.removeItem("session")}
+        aria-label="Leave Room"
+      >
         <LogOut />
       </Link>
     </header>
