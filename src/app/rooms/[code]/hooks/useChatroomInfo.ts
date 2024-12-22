@@ -5,10 +5,15 @@ export default function useChatroomInfo(code: string) {
   const [chatroomInfo, setChatroomInfo] = useState<ChatroomInfoType>();
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     const getChatroomInfo = async () => {
       try {
         const resString = await fetch(
-          process.env.NEXT_PUBLIC_SERVER_URL + `/rooms/${code}`
+          process.env.NEXT_PUBLIC_SERVER_URL + `/rooms/${code}`,
+          {
+            signal: abortController.signal,
+          }
         );
         const resData: ChatroomInfoType = await resString.json();
         setChatroomInfo(resData);
@@ -18,6 +23,10 @@ export default function useChatroomInfo(code: string) {
     };
 
     getChatroomInfo();
+
+    return () => {
+      abortController.abort();
+    };
   }, [code]);
 
   return chatroomInfo;
