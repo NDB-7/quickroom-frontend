@@ -1,30 +1,24 @@
 "use client";
 
-import { LoaderCircle, LogOut, SendHorizontal } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState, use, useRef, FormEvent } from "react";
-import { io } from "socket.io-client";
+import { useEffect, useState, use, useRef } from "react";
 import {
   ClientMessageType,
   ChatroomInfoType,
-  SetNameResponse,
   RejoinResponse,
   SessionType,
 } from "./types";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-const socket = io(process.env.NEXT_PUBLIC_SERVER_URL);
+import { formatTime } from "@/utils/formatTime";
+import { playAudio } from "@/utils/playAudio";
+import ChatroomLoading from "./_components/info/ChatroomLoading";
+import { SessionInUse } from "./_components/info/SessionInUse";
+import RoomExpiredDialog from "./_components/dialogs/RoomExpiredDialog";
+import SetNameDialog from "./_components/dialogs/SetNameDialog";
+import { Message } from "./_components/chat/main/Message";
+import socket from "./socket";
+import InputBox from "./_components/chat/main/InputBox";
+import { Sidebar } from "./_components/chat/info/Sidebar";
+import { ChatroomInfo } from "./_components/chat/info/ChatroomInfo";
 
 export default function RoomPage({
   params,
@@ -91,8 +85,8 @@ export default function RoomPage({
       });
     }
 
-    sendAudioRef.current = new Audio("/send.mp3");
-    receiveAudioRef.current = new Audio("/receive.mp3");
+    sendAudioRef.current = new Audio("/sounds/send.mp3");
+    receiveAudioRef.current = new Audio("/sounds/receive.mp3");
 
     return () => {
       socket.off("updateUserList");
@@ -134,13 +128,13 @@ export default function RoomPage({
     };
   }, [currentUser]);
 
-  if (roomExpired) return <RoomExpired />;
+  if (roomExpired) return <RoomExpiredDialog />;
   if (!chatroomInfo) return <ChatroomLoading />;
   if (sessionInUse) return <SessionInUse>{sessionInUse}</SessionInUse>;
   if (!chatroomInfo.success) return notFound();
   if (currentUser === "")
     return (
-      <NameDialog
+      <SetNameDialog
         setCurrentUser={setCurrentUser}
         setSession={setSession}
         room={code}
@@ -188,302 +182,4 @@ export default function RoomPage({
       </main>
     </div>
   );
-}
-
-function Message({
-  sentByMe,
-  sender,
-  content,
-  hideName,
-  onlineUsers,
-  serverNotification,
-}: ClientMessageType & { hideName: boolean; onlineUsers: string[] }) {
-  if (serverNotification === true) {
-    return (
-      <li className="text-center mt-4 text-gray-600 text-sm">{content}</li>
-    );
-  } else
-    return (
-      <li className={`space-y-1 ${hideName ? "mt-2" : "mt-4"}`}>
-        {!hideName &&
-          (sentByMe ? (
-            <p className="text-gray-800">
-              You <span className="text-xs text-gray-500 ml-1">11:25 AM</span>
-            </p>
-          ) : (
-            <p
-              className={
-                onlineUsers.includes(sender)
-                  ? "text-gray-600"
-                  : "text-gray-500 italic"
-              }
-            >
-              {sender}
-            </p>
-          ))}
-        <p
-          className={`${
-            sentByMe ? "bg-cyan-100" : "bg-gray-50"
-          } rounded-lg max-w-xl text-wrap break-words inline-block py-1 px-2 shadow-sm animate-pop-in`}
-        >
-          {content}
-        </p>
-      </li>
-    );
-}
-
-function Sidebar({
-  onlineUsers,
-  offlineUsers,
-  currentUser,
-}: {
-  onlineUsers: string[];
-  offlineUsers: string[];
-  currentUser: string;
-}) {
-  return (
-    <aside className="hidden md:w-60 lg:w-72 h-full bg-gray-50 border-r-2 md:block relative">
-      <div className="p-4 space-y-4 overflow-y-scroll">
-        {onlineUsers.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="uppercase tracking-wider text-gray-700">
-              Online Users - {onlineUsers.length}
-            </h2>
-            <ul className="space-y-1">
-              {onlineUsers.map((userName, userIndex) => (
-                <UserInList name={userName} key={userIndex} online={true} />
-              ))}
-            </ul>
-          </div>
-        )}
-        {offlineUsers.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="uppercase tracking-wider text-gray-700">
-              Offline Users - {offlineUsers.length}
-            </h2>
-            <ul className="space-y-1">
-              {offlineUsers.map((userName, userIndex) => (
-                <UserInList name={userName} key={userIndex} online={false} />
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-      <div className="absolute bottom-0 w-full h-16 border-t-2 flex items-center justify-between bg-gray-50 p-6 text-lg">
-        <span className="">{currentUser}</span>
-        <Link
-          href="/"
-          onClick={() => localStorage.removeItem("session")}
-          aria-label="Leave Room"
-        >
-          <LogOut />
-        </Link>
-      </div>
-    </aside>
-  );
-}
-
-function UserInList({ name, online }: { name: string; online: boolean }) {
-  return (
-    <li className="text-lg flex items-center gap-3">
-      <div
-        className={`h-2 w-2 ${
-          online ? "bg-green-500" : "bg-gray-400"
-        } rounded-full`}
-      />
-      <span className="text-gray-800 text-ellipsis overflow-hidden whitespace-nowrap hover:whitespace-normal">
-        {name}
-      </span>
-    </li>
-  );
-}
-
-function ChatroomInfo({
-  chatroomName,
-  code,
-  expirationString,
-}: {
-  chatroomName: string;
-  code: string;
-  expirationString: string;
-}) {
-  return (
-    <header className="fixed bg-white w-full border-b-2 py-2 px-4 flex items-center justify-between">
-      <div>
-        <h1 className="text-2xl font-bold">
-          {chatroomName}
-          <span className="text-xs font-normal text-gray-500 ml-2">
-            ({code})
-          </span>
-        </h1>
-        <p className="text-sm text-gray-500">{expirationString}</p>
-      </div>
-      <Link
-        href="/"
-        onClick={() => localStorage.removeItem("session")}
-        aria-label="Leave Room"
-      >
-        <LogOut />
-      </Link>
-    </header>
-  );
-}
-
-function InputBox({ session }: { session: SessionType }) {
-  const [messageInput, setMessageInput] = useState("");
-
-  function handleMessageInput() {
-    if (messageInput !== "") socket.emit("sendMessage", messageInput, session);
-    setMessageInput("");
-  }
-
-  return (
-    <div className="sticky bottom-0 w-full p-3">
-      <form
-        className="flex items-center h-12 rounded-full bg-gray-50 justify-between border-2 border-gray-200"
-        onSubmit={e => e.preventDefault()}
-      >
-        <input
-          className="ml-6 bg-transparent w-full outline-none pr-2"
-          placeholder="Type a message..."
-          aria-label="Message input box"
-          maxLength={1000}
-          value={messageInput}
-          onChange={e => setMessageInput(e.target.value)}
-        />
-        <button
-          className="bg-cyan-500 h-5/6 aspect-square rounded-full mr-1 flex items-center justify-center"
-          onClick={handleMessageInput}
-        >
-          <SendHorizontal className="w-7/12 h-7/12 stroke-white" />
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function ChatroomLoading() {
-  return (
-    <div className="flex flex-col mt-8 text-2xl items-center">
-      <h1>Loading your chatroom...</h1>
-      <LoaderCircle className="animate-spin mt-6" width={48} height={48} />
-    </div>
-  );
-}
-
-function SessionInUse({ children }: { children: React.ReactNode }) {
-  return (
-    <h1 className="mt-8 text-2xl text-center mx-auto px-4 max-w-3xl">
-      {children}
-    </h1>
-  );
-}
-
-function NameDialog({
-  setCurrentUser,
-  setSession,
-  room,
-}: {
-  setCurrentUser: React.Dispatch<React.SetStateAction<string>>;
-  setSession: React.Dispatch<React.SetStateAction<SessionType | undefined>>;
-  room: string;
-}) {
-  const [nameInput, setNameInput] = useState("");
-  const [nameError, setNameError] = useState("");
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (nameInput !== "") {
-      socket.emit("setName", nameInput, room, (response: SetNameResponse) => {
-        if (response.success === false) {
-          setNameError(response.message);
-        } else {
-          const { room, id } = response.session;
-          const sessionString = JSON.stringify({
-            room,
-            id,
-          });
-          localStorage.setItem("session", sessionString);
-          setSession({ room, id });
-          setCurrentUser(nameInput.trim());
-        }
-      });
-    }
-  }
-
-  return (
-    <Dialog open={true}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Set your name</DialogTitle>
-          <DialogDescription>
-            You&apos;re currently joining a chatroom. What name would you like
-            to chat under?
-          </DialogDescription>
-        </DialogHeader>
-        <form className="space-y-2" onSubmit={onSubmit}>
-          <Label htmlFor="name" className="text-right">
-            Name
-          </Label>
-          <Input
-            id="name"
-            value={nameInput}
-            maxLength={20}
-            className="col-span-3"
-            onChange={e => setNameInput(e.target.value)}
-          />
-          {nameError && <p className="text-destructive text-sm">{nameError}</p>}
-          <DialogFooter>
-            <Button type="submit" className="mt-4">
-              Join chatroom
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function RoomExpired() {
-  return (
-    <Dialog open={true}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Room expired</DialogTitle>
-          <DialogDescription>
-            This room has now expired. Please close the tab or return to the
-            homepage to create another chatroom.
-          </DialogDescription>
-        </DialogHeader>
-        <Button asChild>
-          <Link href="/">Return to Home</Link>
-        </Button>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function playAudio(audio: HTMLAudioElement | null) {
-  if (!audio) return;
-  if (!audio.paused) {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-  try {
-    audio.play();
-  } catch (e) {
-    console.log(e);
-  }
-}
-
-// Format to MM:SS
-function formatTime(ms: number) {
-  const toTwoDigits = (num: number) => String(num).padStart(2, "0");
-
-  const timeInSeconds = Math.round(ms / 1000);
-
-  const minutes = toTwoDigits(Math.floor((timeInSeconds % 3600) / 60));
-  const seconds = toTwoDigits(timeInSeconds % 60);
-
-  return `${minutes}:${seconds}`;
 }
