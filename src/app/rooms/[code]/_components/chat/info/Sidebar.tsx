@@ -40,7 +40,7 @@ export function Sidebar({
       </div>
       <div className="absolute bottom-0 w-full h-16 border-t-2 flex items-center justify-between bg-gray-50 p-6 text-lg">
         <span className="">{currentUser}</span>
-        <LeaveRoom />
+        <LeaveRoom className="hidden md:block" />
       </div>
     </aside>
   );

@@ -20,7 +20,7 @@ export function ChatroomInfo({
         </h1>
         <p className="text-sm text-gray-500">{expirationString}</p>
       </div>
-      <LeaveRoom />
+      <LeaveRoom className="md:hidden" />
     </header>
   );
 }
