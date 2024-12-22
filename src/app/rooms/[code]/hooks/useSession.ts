@@ -29,7 +29,7 @@ export default function useSession(
         }
       });
     }
-  }, []);
+  }, [code, setCurrentUser]);
 
   return { sessionInUse, session, setSession };
 }

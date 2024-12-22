@@ -18,7 +18,7 @@ export default function useChatroomInfo(code: string) {
     };
 
     getChatroomInfo();
-  }, []);
+  }, [code]);
 
   return chatroomInfo;
 }
