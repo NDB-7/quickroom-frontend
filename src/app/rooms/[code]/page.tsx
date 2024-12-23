@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useRef } from "react";
 import { notFound } from "next/navigation";
 import ChatroomLoading from "./_components/info/ChatroomLoading";
 import { SessionInUse } from "./_components/info/SessionInUse";
@@ -9,8 +9,6 @@ import SetNameDialog from "./_components/dialogs/SetNameDialog";
 import InputBox from "./_components/chat/main/InputBox";
 import { Sidebar } from "./_components/chat/info/Sidebar";
 import { ChatroomInfo } from "./_components/chat/info/ChatroomInfo";
-import useMessageReceiver from "./hooks/useMessageReceiver";
-import useChatroomExpiration from "./hooks/useChatroomExpiration";
 import MessageList from "./_components/chat/main/MessageList";
 import useChatroomInfo from "./hooks/useChatroomInfo";
 import useSession from "./hooks/useSession";
@@ -24,10 +22,9 @@ export default function RoomPage({
   const { code } = use(params);
 
   const [currentUser, setCurrentUser] = useState("");
+  const mainRef = useRef<HTMLDivElement>(null);
 
   const chatroomInfo = useChatroomInfo(code);
-  const expirationString = useChatroomExpiration(chatroomInfo);
-  const { messages, mainRef } = useMessageReceiver(currentUser);
   const { onlineUsers, offlineUsers, roomExpired } = useRoomUpdates();
   const { sessionInUse, session, setSession } = useSession(
     setCurrentUser,
@@ -59,12 +56,12 @@ export default function RoomPage({
         className="relative h-full flex-grow overflow-y-scroll overflow-x-hidden"
         ref={mainRef}
       >
-        <ChatroomInfo
-          chatroomName={chatroomInfo.name}
-          code={code}
-          expirationString={expirationString}
+        <ChatroomInfo chatroomInfo={chatroomInfo} code={code} />
+        <MessageList
+          currentUser={currentUser}
+          onlineUsers={onlineUsers}
+          mainRef={mainRef}
         />
-        <MessageList messages={messages} onlineUsers={onlineUsers} />
         {session && <InputBox session={session} />}
       </main>
     </div>

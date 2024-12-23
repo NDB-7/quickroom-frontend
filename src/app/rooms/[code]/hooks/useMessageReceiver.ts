@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import socket from "../socket";
-import { ClientMessageType } from "../types";
+import { ClientMessageType, ServerMessageType } from "../types";
 import { playAudio } from "@/utils/playAudio";
 
-export default function useMessageReceiver(currentUser: string) {
+export default function useMessageReceiver(
+  currentUser: string,
+  mainRef: RefObject<HTMLDivElement | null>
+) {
   const [messages, setMessages] = useState<ClientMessageType[]>([]);
-  const mainRef = useRef<HTMLDivElement>(null);
   const sendAudioRef = useRef<HTMLAudioElement>(null);
   const receiveAudioRef = useRef<HTMLAudioElement>(null);
 
@@ -15,14 +17,14 @@ export default function useMessageReceiver(currentUser: string) {
   }, []);
 
   useEffect(() => {
-    socket.on(
-      "receiveMessage",
-      (sender, content, serverNotification, sentAt) => {
-        let newMessage: ClientMessageType;
-        if (sender === currentUser) {
-          newMessage = { sentByMe: true, content, sentAt };
-          playAudio(sendAudioRef.current);
-        } else {
+    socket.on("receiveMessage", (message: ServerMessageType) => {
+      let newMessage: ClientMessageType;
+      const { sender, content, serverNotification, sentAt, cache } = message;
+      if (sender === currentUser) {
+        newMessage = { sentByMe: true, sender, content, sentAt };
+        if (!cache) playAudio(sendAudioRef.current);
+      } else {
+        if (!serverNotification)
           newMessage = {
             sentByMe: false,
             sender,
@@ -30,15 +32,20 @@ export default function useMessageReceiver(currentUser: string) {
             serverNotification,
             sentAt,
           };
-          playAudio(receiveAudioRef.current);
-        }
-        setMessages(prevState => [...prevState, newMessage]);
+        else
+          newMessage = {
+            content,
+            serverNotification,
+          };
+        if (!cache) playAudio(receiveAudioRef.current);
+      }
+      setMessages(prevState => [...prevState, newMessage]);
+      if (!cache)
         mainRef.current?.scrollTo({
           top: mainRef.current.scrollHeight,
           behavior: "smooth",
         });
-      }
-    );
+    });
 
     return () => {
       socket.off("receiveMessage");

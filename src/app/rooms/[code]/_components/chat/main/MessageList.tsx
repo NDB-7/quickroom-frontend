@@ -1,13 +1,18 @@
-import { ClientMessageType } from "../../../types";
+import { RefObject } from "react";
 import { Message } from "./Message";
+import useMessageReceiver from "../../../hooks/useMessageReceiver";
 
 export default function MessageList({
-  messages,
+  currentUser,
   onlineUsers,
+  mainRef,
 }: {
-  messages: ClientMessageType[];
+  currentUser: string;
   onlineUsers: string[];
+  mainRef: RefObject<HTMLDivElement | null>;
 }) {
+  const { messages } = useMessageReceiver(currentUser, mainRef);
+
   return (
     <ul
       className="px-4 pt-16 min-h-[90vh] pb-9"

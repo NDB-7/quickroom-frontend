@@ -1,7 +1,7 @@
 export type ClientMessageType =
   | {
       sentByMe: true;
-      sender?: undefined;
+      sender: string;
       content: string;
       serverNotification?: undefined;
       sentAt: number;
@@ -19,6 +19,22 @@ export type ClientMessageType =
       content: string;
       serverNotification: true;
       sentAt?: undefined;
+    };
+
+export type ServerMessageType =
+  | {
+      sender?: undefined;
+      content: string;
+      serverNotification: true;
+      sentAt?: undefined;
+      cache?: boolean;
+    }
+  | {
+      sender: string;
+      content: string;
+      serverNotification: false;
+      sentAt: number;
+      cache?: boolean;
     };
 
 export type ChatroomInfoType =
