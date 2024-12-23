@@ -1,3 +1,4 @@
+import formatTime from "@/utils/formatTime";
 import { ClientMessageType } from "../../../types";
 
 export function Message({
@@ -5,6 +6,7 @@ export function Message({
   sender,
   content,
   hideName,
+  sentAt,
   onlineUsers,
   serverNotification,
 }: ClientMessageType & { hideName: boolean; onlineUsers: string[] }) {
@@ -18,7 +20,7 @@ export function Message({
         {!hideName &&
           (sentByMe ? (
             <p className="text-gray-800">
-              You <span className="text-xs text-gray-500 ml-1">11:25 AM</span>
+              You <TimeText sentAt={sentAt} />
             </p>
           ) : (
             <p
@@ -28,7 +30,7 @@ export function Message({
                   : "text-gray-500 italic"
               }
             >
-              {sender}
+              {sender} <TimeText sentAt={sentAt} />
             </p>
           ))}
         <p
@@ -40,4 +42,12 @@ export function Message({
         </p>
       </li>
     );
+}
+
+function TimeText({ sentAt }: { sentAt: number }) {
+  return (
+    <span className="text-xs text-gray-500 ml-1 not-italic">
+      {formatTime(sentAt)}
+    </span>
+  );
 }

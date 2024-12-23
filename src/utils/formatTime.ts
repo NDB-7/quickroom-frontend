@@ -1,11 +1,16 @@
-// Format to MM:SS
-export function formatTime(ms: number) {
-  const toTwoDigits = (num: number) => String(num).padStart(2, "0");
+// Formats to HH:MM (AM/PM)
+export default function formatTime(ms: number) {
+  const date = new Date(ms);
 
-  const timeInSeconds = Math.round(ms / 1000);
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
 
-  const minutes = toTwoDigits(Math.floor((timeInSeconds % 3600) / 60));
-  const seconds = toTwoDigits(timeInSeconds % 60);
+  const amPm = hours >= 12 ? "PM" : "AM";
 
-  return `${minutes}:${seconds}`;
+  hours = hours % 12;
+  hours = hours || 12;
+
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+
+  return `${hours}:${formattedMinutes} ${amPm}`;
 }

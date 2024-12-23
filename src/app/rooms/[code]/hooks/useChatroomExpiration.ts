@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChatroomInfoType } from "../types";
-import { formatTime } from "@/utils/formatTime";
+import formatCountdown from "@/utils/formatCountdown";
 
 export default function useChatroomExpiration(
   chatroomInfo: ChatroomInfoType | undefined
@@ -13,7 +13,7 @@ export default function useChatroomExpiration(
     const intervalId = setInterval(() => {
       if (chatroomInfo?.success) {
         const msUntilExpiration = chatroomInfo.expiresAt - Date.now();
-        const timeString = formatTime(msUntilExpiration);
+        const timeString = formatCountdown(msUntilExpiration);
         setExpirationString(`Expires in ${timeString}`);
       }
     }, 1000);

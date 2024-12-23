@@ -15,21 +15,30 @@ export default function useMessageReceiver(currentUser: string) {
   }, []);
 
   useEffect(() => {
-    socket.on("receiveMessage", (sender, content, serverNotification) => {
-      let newMessage: ClientMessageType;
-      if (sender === currentUser) {
-        newMessage = { sentByMe: true, content };
-        playAudio(sendAudioRef.current);
-      } else {
-        newMessage = { sentByMe: false, sender, content, serverNotification };
-        playAudio(receiveAudioRef.current);
+    socket.on(
+      "receiveMessage",
+      (sender, content, serverNotification, sentAt) => {
+        let newMessage: ClientMessageType;
+        if (sender === currentUser) {
+          newMessage = { sentByMe: true, content, sentAt };
+          playAudio(sendAudioRef.current);
+        } else {
+          newMessage = {
+            sentByMe: false,
+            sender,
+            content,
+            serverNotification,
+            sentAt,
+          };
+          playAudio(receiveAudioRef.current);
+        }
+        setMessages(prevState => [...prevState, newMessage]);
+        mainRef.current?.scrollTo({
+          top: mainRef.current.scrollHeight,
+          behavior: "smooth",
+        });
       }
-      setMessages(prevState => [...prevState, newMessage]);
-      mainRef.current?.scrollTo({
-        top: mainRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    });
+    );
 
     return () => {
       socket.off("receiveMessage");
