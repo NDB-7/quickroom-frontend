@@ -18,7 +18,7 @@ export default function RateLimitedDialog({
     <Dialog open={open}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>You've been rate limited!</DialogTitle>
+          <DialogTitle>You&apos;ve been rate limited!</DialogTitle>
           <DialogDescription>
             Please refrain from spamming messages, or you may be removed from
             the chatroom.

@@ -50,7 +50,7 @@ export default function useMessageReceiver(
     return () => {
       socket.off("receiveMessage");
     };
-  }, [currentUser]);
+  }, [currentUser, mainRef]);
 
   return { messages, mainRef };
 }
