@@ -40,6 +40,8 @@
 
 /* Landing Page */
 
+/* --- Navbar --- */
+
 .hover-link {
   position: relative;
   transition: color 0.2s;
@@ -62,4 +64,15 @@
 
 .hover-link:hover::after {
   width: 100%;
+}
+
+/* --- Hero --- */
+
+.home-input {
+  width: 45rem;
+  max-width: 90%;
+}
+
+.bg-pattern {
+  background-image: url("/images/bg-pattern.svg");
 }
