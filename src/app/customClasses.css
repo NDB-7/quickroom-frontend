@@ -1,0 +1,65 @@
+/* Nathan's Custom Classes */
+
+/* Animations */
+
+.blur-overlay {
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  z-index: 10;
+  animation: unblur 0.4s ease-out;
+  pointer-events: none;
+}
+
+.animate-pop-in {
+  transform-origin: top left;
+  animation: pop-in 0.1s ease-out;
+}
+
+@keyframes unblur {
+  0% {
+    backdrop-filter: blur(0.5rem);
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  100% {
+    backdrop-filter: blur(0);
+    background-color: none;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    scale: 0.5;
+    opacity: 0.15;
+  }
+  100% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+/* Landing Page */
+
+.hover-link {
+  position: relative;
+  transition: color 0.2s;
+}
+
+.hover-link::after {
+  position: absolute;
+  top: 90%;
+  left: 0%;
+  content: "";
+  width: 0%;
+  height: 0.125rem;
+  background-color: #06b6d4;
+  transition: width 0.2s;
+}
+
+.hover-link:hover {
+  color: #0891b2;
+}
+
+.hover-link:hover::after {
+  width: 100%;
+}
