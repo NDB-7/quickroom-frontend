@@ -9,8 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Full-Stack Web App",
-  description: "Forked from Nathan's Full-Stack Template",
+  title: "QuickRoom",
+  description:
+    "Create a chatroom in seconds with just a 4-digit code. Share it with your friends and start chatting instantly—no login required.",
 };
 
 export default function RootLayout({

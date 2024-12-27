@@ -84,7 +84,7 @@ export default function Home() {
               <Image
                 src="/images/sharing.svg"
                 alt="sharing"
-                className="mt-6 mx-auto drop-shadow"
+                className="mt-7 mx-auto drop-shadow"
                 width={227}
                 height={87}
               />
@@ -95,13 +95,30 @@ export default function Home() {
                 Your conversations stay yours. All data is automatically erased
                 when the chatroom expires, protecting your privacy.
               </p>
+              <Image
+                src="/images/shield.svg"
+                alt="sharing"
+                className="mt-4 mx-auto drop-shadow"
+                width={101}
+                height={114}
+              />
             </div>
-            <div className="h-80 w-80 rounded-2xl border-gray-200 border-2 p-6">
+            <div
+              className="h-80 w-80 rounded-2xl border-gray-200 border-2 p-6"
+              id="features"
+            >
               <H3>Easy Rejoining</H3>
               <p className="text-gray-700 mt-4">
                 Accidentally closed the tab? No problem. Rejoin the same
                 chatroom instantly with seamless tab recovery.
               </p>
+              <Image
+                src="/images/chatting.svg"
+                alt="sharing"
+                className="mt-4 mx-auto drop-shadow"
+                width={203}
+                height={111}
+              />
             </div>
           </div>
         </div>
