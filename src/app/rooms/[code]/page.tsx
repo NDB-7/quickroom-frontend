@@ -46,6 +46,7 @@ export default function RoomPage({
 
   return (
     <div className="fixed flex w-full h-full">
+      <title>{`${chatroomInfo.name} | QuickRoom`}</title>
       <div className="blur-overlay" />
       <Sidebar
         onlineUsers={onlineUsers}
