@@ -1,8 +1,7 @@
-import { Button } from "@/components/ui/button";
 import CheckText from "./CheckText";
 import { H1, H2 } from "./Headings";
-import { Pencil } from "lucide-react";
 import Image from "next/image";
+import CreateRoom from "./CreateRoom";
 
 export default function Hero() {
   return (
@@ -14,19 +13,7 @@ export default function Hero() {
         Create a chatroom in seconds with just a 4-digit code. Share it with
         your friends and start chatting instantly—no login required.
       </p>
-      <form className="mt-10 relative home-input">
-        <input
-          type="text"
-          maxLength={30}
-          placeholder="Enter chatroom name here"
-          className="border-gray-200 border-2 rounded-full py-2 px-6 shadow-sm w-full transition-all hover:border-gray-300 hover:shadow-gray-200"
-          required
-        />
-        <Button className="absolute right-1 top-1 rounded-full">
-          <Pencil />
-          Create
-        </Button>
-      </form>
+      <CreateRoom />
       <div className="mt-24 flex flex-col items-center lg:flex-row lg:items-start lg:pl-16 gap-12 lg:gap-24 max-w-5xl w-full fade-left">
         <Image
           src="/images/imac.png"

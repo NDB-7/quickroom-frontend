@@ -28,7 +28,7 @@ export default function Home() {
             />
           </svg>
         </div>
-        <div className="bg-white flex flex-col items-center px-6">
+        <section className="bg-white flex flex-col items-center px-6">
           <H2 className="mt-12">What makes us unique?</H2>
           <p className="mt-4 text-gray-700">
             We offer the smoothest and safest chatting experience on the web.
@@ -80,7 +80,7 @@ export default function Home() {
               />
             </div>
           </div>
-        </div>
+        </section>
         <div className="w-full mt-24 overflow-hidden">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -95,7 +95,7 @@ export default function Home() {
             />
           </svg>
         </div>
-        <div className="bg-gray-50 flex flex-col items-center px-6 pb-48">
+        <section className="bg-gray-50 flex flex-col items-center px-6 pb-48">
           <H2 className="mt-12">Frequently Asked Questions</H2>
           <p className="mt-4 text-gray-700">
             Any other questions? Feel free to contact us.
@@ -150,7 +150,7 @@ export default function Home() {
               />
             </div>
           </div>
-        </div>
+        </section>
         <div className="w-full overflow-hidden">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -165,11 +165,12 @@ export default function Home() {
             />
           </svg>
         </div>
-        <div className="bg-cyan-600 -mt-12 -z-10 flex flex-col items-center">
+        <section className="bg-cyan-600 -mt-12 -z-10 flex flex-col items-center">
           <div className="-translate-y-24 rounded-2xl border-gray-200 border-2 py-8 px-16 bg-white">
             <H2 className="text-center">Contact Us</H2>
             <p className="text-gray-700 mt-4 text-center">
-              If you have any feedback, we're more than happy to hear you out.
+              If you have any feedback, we&apos;re more than happy to hear you
+              out.
             </p>
             <form className="mt-8">
               <div className="space-y-4">
@@ -211,8 +212,8 @@ export default function Home() {
               </Button>
             </form>
           </div>
-          <p className="mb-4 text-white">© 2024 QuickRoom</p>
-        </div>
+          <footer className="mb-4 text-white">© 2024 QuickRoom</footer>
+        </section>
       </main>
     </>
   );
