@@ -74,12 +74,15 @@ export default function CreateRoom() {
     );
   else
     return (
-      <p className="mt-10 border-gray-200 border-2 rounded-md scale-125 py-2 px-6 shadow-sm">
-        Here&apos;s your chatroom!
-        <Link
-          href={`/rooms/${code}`}
-          className="underline ml-2"
-        >{`${window.location.href}rooms/${code}`}</Link>
+      <p className="mt-10 border-gray-200 border-2 rounded-md scale-125 py-2 px-6 shadow-sm mx-8">
+        <span className="block">Here&apos;s your chatroom!</span>
+        <Link href={`/rooms/${code}`} className="underline">
+          {window.location.href}
+          <wbr />
+          rooms/
+          <wbr />
+          {code}
+        </Link>
       </p>
     );
 }
