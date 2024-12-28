@@ -211,6 +211,7 @@ export default function Home() {
               </Button>
             </form>
           </div>
+          <p className="mb-4 text-white">© 2024 QuickRoom</p>
         </div>
       </main>
     </>
