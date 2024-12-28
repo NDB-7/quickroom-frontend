@@ -13,7 +13,9 @@ export function H1({
   className?: string;
 }) {
   return (
-    <h1 className={`${figtree.className} text-center text-6xl ${className}`}>
+    <h1
+      className={`${figtree.className} text-center text-4xl md:text-5xl lg:text-6xl ${className}`}
+    >
       {children}
     </h1>
   );
@@ -27,7 +29,9 @@ export function H2({
   className?: string;
 }) {
   return (
-    <h2 className={`${figtree.className} text-4xl ${className}`}>{children}</h2>
+    <h2 className={`${figtree.className} text-3xl lg:text-4xl ${className}`}>
+      {children}
+    </h2>
   );
 }
 
