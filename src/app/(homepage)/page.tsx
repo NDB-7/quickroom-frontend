@@ -30,7 +30,7 @@ export default function Home() {
         </div>
         <section className="bg-white flex flex-col items-center px-6">
           <H2 className="mt-12">What makes us unique?</H2>
-          <p className="mt-4 text-gray-700">
+          <p className="mt-4 text-gray-700 text-center">
             We offer the smoothest and safest chatting experience on the web.
           </p>
           <div className="mt-12 grid xl:grid-cols-3 md:grid-cols-2 gap-12">
@@ -95,7 +95,10 @@ export default function Home() {
             />
           </svg>
         </div>
-        <section className="bg-gray-50 flex flex-col items-center px-6 pb-48">
+        <section
+          className="bg-gray-50 flex flex-col items-center px-6 pb-48"
+          id="faq"
+        >
           <H2 className="mt-12">Frequently Asked Questions</H2>
           <p className="mt-4 text-gray-700">
             Any other questions? Feel free to contact us.
@@ -166,7 +169,10 @@ export default function Home() {
           </svg>
         </div>
         <section className="bg-cyan-600 -mt-12 -z-10 flex flex-col items-center">
-          <div className="-translate-y-24 rounded-2xl border-gray-200 border-2 py-8 px-16 bg-white">
+          <div
+            className="-translate-y-24 rounded-2xl border-gray-200 border-2 py-8 px-8 sm:px-12 lg:px-16 xl:px-20 bg-white mx-8"
+            id="contact"
+          >
             <H2 className="text-center">Contact Us</H2>
             <p className="text-gray-700 mt-4 text-center">
               If you have any feedback, we&apos;re more than happy to hear you

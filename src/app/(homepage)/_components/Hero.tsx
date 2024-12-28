@@ -34,9 +34,10 @@ export default function Hero() {
       <img
         src="/images/big-gradient.svg"
         alt=""
-        className="mt-32 -z-10 absolute"
+        className="mt-[50rem] sm:mt-[36rem] md:mt-[30rem] lg:mt-32 -z-10 absolute"
       />
       <div className="absolute mt-72 w-full -z-10">
+        <div className="bg-pattern h-80" />
         <div className="bg-pattern h-80" />
         <div className="bg-pattern h-80" />
       </div>

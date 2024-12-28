@@ -37,8 +37,8 @@ export default function CreateRoom() {
   }
   if (!code)
     return (
-      <div className="space-y-1">
-        <form className="mt-10 relative home-input" onSubmit={submitHandler}>
+      <div className="space-y-1 home-input">
+        <form className="mt-10 relative " onSubmit={submitHandler}>
           <input
             type="text"
             maxLength={30}
@@ -55,19 +55,19 @@ export default function CreateRoom() {
             {pending ? (
               <>
                 <LoaderCircle className="animate-spin" />
-                Creating...
+                <span className="hidden sm:inline">Creating...</span>
               </>
             ) : (
               <>
                 <Pencil />
-                Create
+                <span className="hidden sm:inline">Create</span>
               </>
             )}
           </Button>
         </form>
         {isError && (
           <div className="text-destructive pl-6">
-            There was an error creating your chatroom, try again.
+            Error creating your chatroom, try again.
           </div>
         )}
       </div>
