@@ -18,6 +18,7 @@ export default function Hero() {
           maxLength={30}
           placeholder="Enter chatroom name here"
           className="border-gray-200 border-2 rounded-full py-2 px-6 shadow-sm w-full transition-all hover:border-gray-300 hover:shadow-gray-200"
+          required
         />
         <Button className="absolute right-1 top-1 rounded-full">
           <Pencil />
