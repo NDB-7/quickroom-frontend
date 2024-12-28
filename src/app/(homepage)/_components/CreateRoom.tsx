@@ -18,6 +18,9 @@ export default function CreateRoom() {
         process.env.NEXT_PUBLIC_SERVER_URL + "/rooms",
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ name: userInput }),
         }
       );
